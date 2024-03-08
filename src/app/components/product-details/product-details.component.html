@@ -1,0 +1,6 @@
+<h3>Product Details</h3>
+<section ngClass="product-details-card" *ngIf="product">
+    <p *ngFor="let prod of product | keyvalue">
+        {{ prod.key }}: {{ prod.value }}
+    </p>
+</section>

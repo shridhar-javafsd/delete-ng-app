@@ -1,0 +1,11 @@
+<h1>Product List</h1>
+
+<app-product-details *ngIf="selectedProduct" [product]="selectedProduct"></app-product-details>
+
+<section ngClass="product-list">
+    <section ngClass="product-card" *ngFor="let product of products">
+        <h4>{{ product.name }} </h4>
+        <img (click)="selectProduct(product)" width="60%" src="{{product.thumbnailImage}}" alt="">
+        <!-- <button (click)="selectProduct(product)">View Details</button> -->
+    </section>
+</section>
