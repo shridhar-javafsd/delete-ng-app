@@ -1,40 +1,108 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { ProductDetailComponent } from '../product-details/product-details.component';
-import { Product } from '../../models/product';
 import { ProductService } from '../../services/product.service';
+import { FormControl, FormsModule, NgForm, ReactiveFormsModule } from '@angular/forms';
+import { Product } from '../../models/product.model';
+import { debounceTime, distinctUntilChanged, map, switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-product-list',
   standalone: true,
-  imports: [CommonModule, ProductDetailComponent],
+  imports: [CommonModule, ProductDetailComponent, FormsModule, ReactiveFormsModule],
   templateUrl: './product-list.component.html',
   styleUrl: './product-list.component.css'
 })
-export class ProductListComponent
-  implements OnInit {
+export class ProductListComponent implements OnInit {
 
-  products: Product[] | undefined;
-  selectedProduct: Product | undefined;
+  products: Product[] | any;
+  selectedProduct: Product | any;
+  productId: number | undefined;
+  productNotFound: string = '';
 
-  constructor(private productService: ProductService) { }
+  @ViewChild('productIdForm')
+  productIdForm!: NgForm;
+
+  searchControl = new FormControl();
+  searchedRepos: any;
+
+
+  constructor(private productService: ProductService) {
+  }
 
   ngOnInit(): void {
-    this.productService.getAllProducts()
-      .subscribe({
-        next: (response) => {
-          console.log(response);
-          return this.products = response;
-        },
-        error: (err) => console.log(err)
-      });
+
+    this.searchControl.valueChanges
+      .pipe(
+        map((q) => {
+          if (q === '')
+            return 'vaman';
+          return q;
+        }),
+        debounceTime(300),
+        distinctUntilChanged(),
+        switchMap((qry: string) => { return this.productService.getGitRepos(qry) })
+      )
+      // handle null
+      // .pipe()
+      .subscribe((resp) => {
+        console.log(resp);
+        this.searchedRepos = resp;
+      })
   }
 
-  selectProduct(product: Product) {
-    console.log(product);
+  // viewAllProducts = () => {
+  //   this.productService.getAllProducts()
+  //     .subscribe({
+  //       next: (response) => {
+  //         console.log(response.products);
+  //         this.products = response.products;
+  //       },
+  //       error: (err) => { console.log(err); }
+  //     });
+  // };
+
+  viewAllProducts = (): void => {
+    this.productService.getAllProducts()
+      .pipe(map((resp) => { return resp.products }))
+      .subscribe({
+        next: (response: Product[]) => {
+          console.log(response);
+          this.products = response;
+        },
+        error: (err) => { console.log(err); }
+      });
+  };
+
+  viewProductById = (productIdForm: NgForm): void => {
+    if (productIdForm.value.productId)
+      this.productService.getProductById(productIdForm.value.productId)
+        .pipe(debounceTime(1000))
+        .subscribe({
+          next: (response: Product) => {
+            console.log(response);
+            this.selectProduct(response);
+            productIdForm.reset();
+          },
+          error: (err) => {
+            console.log(err);
+            this.productNotFound = err.error.message;
+            this.selectProduct(undefined);
+            productIdForm.reset();
+          }
+        });
+  };
+
+  selectProduct(product: Product | any): void {
     this.selectedProduct = product;
   }
+
+  handleClick = (): void => {
+    this.selectedProduct = undefined;
+  };
 }
+
+
 
 
 // import { CommonModule } from '@angular/common';
@@ -47,7 +115,6 @@ export class ProductListComponent
 //   imports: [CommonModule, ProductDetailComponent],
 //   templateUrl: './product-list.component.html',
 //   styleUrl: './product-list.component.css'
-
 // })
 // export class ProductListComponent {
 
@@ -65,5 +132,15 @@ export class ProductListComponent
 //   selectProduct(product: any) {
 //     this.selectedProduct = product;
 //   }
+
+//   handleClick = () => {
+//     this.selectedProduct = '';
+//   };
+
+
 // }
+
+
+
+
 

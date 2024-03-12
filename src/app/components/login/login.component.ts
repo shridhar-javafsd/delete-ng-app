@@ -1,26 +1,3 @@
-// import { CommonModule } from '@angular/common';
-// import { Component } from '@angular/core';
-// import { FormsModule } from '@angular/forms';
-
-// @Component({
-//   selector: 'app-login',
-//   standalone: true,
-//   imports: [CommonModule, FormsModule],
-//   templateUrl: './login.component.html',
-//   styleUrl: './login.component.css'
-// })
-// export class LoginComponent {
-
-//   onSubmit(loginForm: any) {
-//     if (loginForm.valid) {
-//       // Perform login authentication logic here
-//       console.log('Form submitted successfully!');
-//     }
-//   }
-// }
-
-
-
 import { CommonModule } from '@angular/common';
 import { Component, ViewChild } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
@@ -34,18 +11,26 @@ import { FormsModule, NgForm } from '@angular/forms';
 })
 export class LoginComponent {
 
-  formData: any = {
+  loginData: any = {
     username: '',
     password: ''
   };
 
-  @ViewChild('loginForm') loginForm!: NgForm;
+  @ViewChild('loginForm')
+  loginForm!: NgForm;
 
-  onSubmit() {
-    if (this.formData.username && this.formData.password) {
-      console.log('Form submitted successfully!');
+  submitLogin = (loginForm: any) => {
+    if (loginForm.value.username && loginForm.value.password) {
+      this.loginData = loginForm.value;
       this.loginForm.resetForm();
-
+      console.log(this.loginData);
     }
-  }
+    else {
+      console.log('missing values');
+    }
+  };
+
 }
+
+
+
